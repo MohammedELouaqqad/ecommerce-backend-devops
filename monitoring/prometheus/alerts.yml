@@ -1,0 +1,38 @@
+groups:
+  - name: ecommerce-backend
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m]))
+            /
+            sum(rate(http_server_requests_seconds_count[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: High HTTP 5xx error rate on ecommerce-backend
+          description: More than 5% of requests return 5xx for 5 minutes.
+
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(http_server_requests_seconds_bucket[5m])) by (le)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High API latency on ecommerce-backend
+          description: HTTP p95 latency is above 1 second for 5 minutes.
+
+      - alert: BackendDown
+        expr: up{job="ecommerce-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: ecommerce-backend is down
+          description: Prometheus cannot scrape the Spring Boot actuator endpoint.
