@@ -10,10 +10,10 @@ permissions:
   contents: read
   packages: write
   security-events: write
+  actions: read
 
 env:
   JAVA_VERSION: "17"
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
   test:
@@ -60,6 +60,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set lowercase image name
+        run: echo "IMAGE_NAME=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -92,8 +95,8 @@ jobs:
           exit-code: "0"
 
       - name: Upload Trivy report
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        if: hashFiles('trivy-results.sarif') != ''
         with:
           sarif_file: trivy-results.sarif
 
