@@ -9,8 +9,6 @@ on:
 permissions:
   contents: read
   packages: write
-  security-events: write
-  actions: read
 
 env:
   JAVA_VERSION: "17"
@@ -89,16 +87,9 @@ jobs:
         uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
-          format: sarif
-          output: trivy-results.sarif
+          format: table
           severity: HIGH,CRITICAL
           exit-code: "0"
-
-      - name: Upload Trivy report
-        uses: github/codeql-action/upload-sarif@v4
-        if: hashFiles('trivy-results.sarif') != ''
-        with:
-          sarif_file: trivy-results.sarif
 
       - name: Push Docker image
         uses: docker/build-push-action@v6
