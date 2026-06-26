@@ -61,7 +61,7 @@ docker compose version
 ## 4. Déployer l'application
 
 ```bash
-git clone https://github.com/MohammedELouaqqad/ecommerce-backend-devops.git
+git clone https://github.com/<OWNER>/ecommerce-backend-devops.git
 cd ecommerce-backend-devops
 
 docker compose up -d --build mysql backend
@@ -89,14 +89,14 @@ http://IP_PUBLIQUE_EC2:8009/swagger-ui/index.html
 ## 6. Utiliser l'image GHCR (optionnel)
 
 ```bash
-echo VOTRE_GITHUB_TOKEN | docker login ghcr.io -u MohammedELouaqqad --password-stdin
+echo $GITHUB_TOKEN | docker login ghcr.io -u <GITHUB_USERNAME> --password-stdin
 ```
 
 Remplacer le service `backend` dans `docker-compose.yml` :
 
 ```yaml
 backend:
-  image: ghcr.io/mohammedelouaqqad/ecommerce-backend-devops:latest
+  image: ghcr.io/<OWNER>/ecommerce-backend-devops:latest
   # supprimer la section build:
 ```
 

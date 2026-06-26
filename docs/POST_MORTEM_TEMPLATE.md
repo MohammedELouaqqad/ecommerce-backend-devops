@@ -1,7 +1,6 @@
 # Post-mortem : [titre de l'incident]
 
 **Date :** YYYY-MM-DD  
-**Auteur :** Mohammed ELouaqqad  
 **Durée de l'incident :** X minutes  
 **Impact :** API indisponible / erreurs 5xx / latence élevée
 

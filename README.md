@@ -1,12 +1,12 @@
-# E-Commerce Backend — DevOps Portfolio Project
+# E-Commerce Backend API
 
-REST API e-commerce **Spring Boot**, containerisée avec **Docker**, pipeline **GitHub Actions**, image sur **GHCR**, monitoring **Prometheus/Grafana**, déployée sur **AWS EC2**.
+REST API e-commerce **Spring Boot**, containerisée avec **Docker**, pipeline **GitHub Actions**, registry **GHCR**, monitoring **Prometheus/Grafana**, déployable sur **AWS EC2**.
 
-Fork enrichi du projet [ECommerce-SpringBoot-Backend-Project](https://github.com/abinashpanigrahi/ECommerce-SpringBoot-Backend-Project) par [Mohammed ELouaqqad](https://github.com/MohammedELouaqqad).
+Basé sur [ECommerce-SpringBoot-Backend-Project](https://github.com/abinashpanigrahi/ECommerce-SpringBoot-Backend-Project) avec une couche DevOps (Docker, CI/CD, observabilité).
 
 ---
 
-## Fonctionnalités DevOps ajoutées
+## Fonctionnalités DevOps
 
 | Fonctionnalité | Fichier / outil |
 |----------------|-----------------|
@@ -17,7 +17,7 @@ Fork enrichi du projet [ECommerce-SpringBoot-Backend-Project](https://github.com
 | Registry | GHCR |
 | Observabilité | Actuator, Prometheus, Grafana |
 | Profils Spring | `application-docker.properties`, `application-test.properties` |
-| Deploy cloud | AWS EC2 (documenté dans `docs/DEPLOYMENT.md`) |
+| Deploy cloud | AWS EC2 (`docs/DEPLOYMENT.md`) |
 
 ---
 
@@ -109,10 +109,7 @@ curl http://localhost:8009/products
 ### Arrêter et nettoyer
 
 ```bash
-# Arrêter backend + mysql
 docker compose down
-
-# Arrêter tout (y compris monitoring) + supprimer volumes
 docker compose --profile monitoring down -v
 ```
 
@@ -126,22 +123,14 @@ Pipeline déclenché sur **push** et **pull request** vers `main`.
 push / PR
    │
    ├─ Job: test
-   │    ├─ MySQL 8 (service container GitHub Actions)
+   │    ├─ MySQL 8 (service container)
    │    └─ ./mvnw test (profil test)
    │
    └─ Job: build-scan-push (push main uniquement)
         ├─ docker build
-        ├─ trivy scan (table, HIGH/CRITICAL)
-        └─ push → ghcr.io/mohammedelouaqqad/ecommerce-backend-devops
+        ├─ trivy scan (HIGH/CRITICAL)
+        └─ push image → GHCR
 ```
-
-**Image Docker :**
-
-```text
-ghcr.io/mohammedelouaqqad/ecommerce-backend-devops:latest
-```
-
-Badge Actions : voir l'onglet **Actions** du repository.
 
 ---
 
@@ -149,17 +138,13 @@ Badge Actions : voir l'onglet **Actions** du repository.
 
 ### Actuator
 
-Endpoints exposés :
-
 - `/actuator/health`
 - `/actuator/prometheus`
 - `/actuator/metrics`
 
 ### Grafana
 
-Dashboard auto-provisionné : dossier **ECommerce** → **ECommerce Backend**
-
-Panels : request rate, erreurs 5xx, latence p95, mémoire JVM.
+Dashboard : dossier **ECommerce** → **ECommerce Backend**
 
 ### Alertes Prometheus
 
@@ -175,16 +160,12 @@ Fichier : `monitoring/prometheus/alerts.yml`
 
 ## Déploiement AWS EC2
 
-Guide complet : **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**
-
-Résumé :
+Guide : **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**
 
 1. Ubuntu 24.04 LTS, `t3.small` ou `t3.medium`
 2. Security Group : SSH `22` (My IP) + TCP `8009` (API)
 3. `git clone` + `docker compose up -d --build mysql backend`
 4. Swagger : `http://IP_PUBLIQUE:8009/swagger-ui/index.html`
-
-> Utiliser **Stop instance** pour économiser. **Terminate** supprime tout définitivement.
 
 ---
 
@@ -220,15 +201,9 @@ Profil `test` : `src/main/resources/application-test.properties`
 ├── docker-compose.yml
 ├── docs/
 │   ├── DEPLOYMENT.md
-│   ├── UPSTREAM_PR.md
 │   └── POST_MORTEM_TEMPLATE.md
 ├── monitoring/
-│   ├── prometheus/
-│   └── grafana/
 ├── src/main/resources/
-│   ├── application.properties
-│   ├── application-docker.properties
-│   └── application-test.properties
 └── pom.xml
 ```
 
@@ -250,8 +225,8 @@ Documentation complète : Swagger UI.
 
 ## Remerciements
 
-Projet API original : [abinashpanigrahi/ECommerce-SpringBoot-Backend-Project](https://github.com/abinashpanigrahi/ECommerce-SpringBoot-Backend-Project) — Masai School.
+Projet API original : [abinashpanigrahi/ECommerce-SpringBoot-Backend-Project](https://github.com/abinashpanigrahi/ECommerce-SpringBoot-Backend-Project).
 
 ## Licence
 
-Projet original sous licence MIT. Les ajouts DevOps sont documentés dans ce fork.
+MIT (projet original). Les ajouts DevOps suivent la même licence.
