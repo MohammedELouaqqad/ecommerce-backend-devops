@@ -1,6 +1,19 @@
-# Guide de déploiement AWS EC2
+# Guide de déploiement AWS EC2 (production)
 
-Ce document décrit le déploiement de la stack **backend + MySQL** sur une instance EC2.
+Ce document décrit le déploiement **production** de la stack **backend + MySQL** sur EC2, avec le profil Spring `prod`.
+
+---
+
+## Dev vs Prod dans ce projet
+
+| | **Dev** (`docker-compose.yml`) | **Prod** (`docker-compose.prod.yml`) |
+|---|-------------------------------|--------------------------------------|
+| Profil Spring | `docker` | `prod` |
+| Mots de passe | `root/root` (OK en local) | Variables `.env` (secrets) |
+| Schéma DB | Hibernate `update` auto | Flyway migrations + `validate` |
+| SQL dans les logs | `show-sql=true` | `show-sql=false` |
+| MySQL exposé | Port 3307 (local) | **Non** (réseau Docker uniquement) |
+| Health details | `always` | `when_authorized` |
 
 ---
 
@@ -58,23 +71,28 @@ docker compose version
 
 ---
 
-## 4. Déployer l'application
+## 4. Déployer en production
 
 ```bash
-git clone https://github.com/<OWNER>/ecommerce-backend-devops.git
+git clone https://github.com/MohammedELouaqqad/ecommerce-backend-devops.git
 cd ecommerce-backend-devops
 
-docker compose up -d --build mysql backend
+# Créer le fichier de secrets (ne jamais le committer)
+cp .env.example .env
+nano .env   # remplacer MYSQL_ROOT_PASSWORD par un mot de passe fort
+
+# Lancer la stack production
+docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 ```
 
-Sur `t3.small`, ne déployer que `mysql` et `backend` (pas Prometheus/Grafana).
+Au premier démarrage, **Flyway** crée automatiquement le schéma de la base (`V1__initial_schema.sql`).
 
 ---
 
 ## 5. Vérifier
 
 ```bash
-docker compose ps
+docker compose -f docker-compose.prod.yml ps
 curl http://localhost:8009/actuator/health
 ```
 
@@ -92,17 +110,17 @@ http://IP_PUBLIQUE_EC2:8009/swagger-ui/index.html
 echo $GITHUB_TOKEN | docker login ghcr.io -u <GITHUB_USERNAME> --password-stdin
 ```
 
-Remplacer le service `backend` dans `docker-compose.yml` :
-
-```yaml
-backend:
-  image: ghcr.io/<OWNER>/ecommerce-backend-devops:latest
-  # supprimer la section build:
-```
+Dans `.env`, décommenter et définir :
 
 ```bash
-docker compose pull backend
-docker compose up -d mysql backend
+BACKEND_IMAGE=ghcr.io/mohammedelouaqqad/ecommerce-backend-devops:latest
+```
+
+Puis :
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env pull backend
+docker compose -f docker-compose.prod.yml --env-file .env up -d
 ```
 
 ---
@@ -119,8 +137,21 @@ Après un **Stop/Start**, vérifier la nouvelle IP publique et relancer :
 
 ```bash
 cd ~/ecommerce-backend-devops
-docker compose up -d mysql backend
+docker compose -f docker-compose.prod.yml --env-file .env up -d
 ```
+
+---
+
+## Variables d'environnement (prod)
+
+| Variable | Description |
+|----------|-------------|
+| `MYSQL_ROOT_PASSWORD` | Mot de passe root MySQL (fort, unique) |
+| `MYSQL_DATABASE` | Nom de la base (défaut : `ecommercedb`) |
+| `DB_URL` | URL JDBC (défaut dans `.env.example`) |
+| `DB_USERNAME` | Utilisateur DB (défaut : `root`) |
+| `DB_PASSWORD` | Doit correspondre à `MYSQL_ROOT_PASSWORD` |
+| `BACKEND_IMAGE` | Image GHCR (optionnel) |
 
 ---
 
@@ -130,6 +161,8 @@ docker compose up -d mysql backend
 |----------|----------|
 | SSH timeout | Security Group : port 22 ouvert pour My IP |
 | API inaccessible | Port 8009 ouvert dans Security Group |
+| `DB_PASSWORD` manquant | Vérifier `.env` et `--env-file .env` |
+| Erreur Flyway / validate | Voir les logs : `docker compose -f docker-compose.prod.yml logs backend` |
 | Build lent / OOM | Passer à `t3.medium` |
 | `git clone` demande mot de passe | Repo privé → token ou SSH deploy key |
 

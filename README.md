@@ -16,8 +16,9 @@ Basé sur [ECommerce-SpringBoot-Backend-Project](https://github.com/abinashpanig
 | Scan sécurité | Trivy (HIGH/CRITICAL) |
 | Registry | GHCR |
 | Observabilité | Actuator, Prometheus, Grafana |
-| Profils Spring | `application-docker.properties`, `application-test.properties` |
-| Deploy cloud | AWS EC2 (`docs/DEPLOYMENT.md`) |
+| Profils Spring | `dev`, `docker`, `prod`, `test` |
+| Migrations DB (prod) | Flyway (`src/main/resources/db/migration/`) |
+| Deploy cloud | AWS EC2 — `docker-compose.prod.yml` (`docs/DEPLOYMENT.md`) |
 
 ---
 
@@ -62,6 +63,28 @@ Basé sur [ECommerce-SpringBoot-Backend-Project](https://github.com/abinashpanig
 | CI/CD | GitHub Actions, GHCR, Trivy |
 | Monitoring | Actuator, Micrometer, Prometheus, Grafana |
 | Cloud | AWS EC2, Security Groups |
+
+---
+
+## Profils Spring (dev vs prod)
+
+| Profil | Fichier | Usage |
+|--------|---------|-------|
+| `dev` | `application-dev.properties` | Développement local (MySQL sur `localhost:3307`) |
+| `docker` | `application-docker.properties` | `docker-compose.yml` (dev local containerisé) |
+| `prod` | `application-prod.properties` | EC2 / production (`docker-compose.prod.yml`) |
+| `test` | `application-test.properties` | CI GitHub Actions |
+
+**Production** : secrets via `.env`, Flyway pour le schéma, `ddl-auto=validate`, pas de SQL dans les logs.
+
+```bash
+# Dev local (docker-compose)
+docker compose up --build -d
+
+# Production (EC2)
+cp .env.example .env   # puis éditer les mots de passe
+docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+```
 
 ---
 
@@ -158,14 +181,15 @@ Fichier : `monitoring/prometheus/alerts.yml`
 
 ---
 
-## Déploiement AWS EC2
+## Déploiement AWS EC2 (production)
 
 Guide : **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**
 
 1. Ubuntu 24.04 LTS, `t3.small` ou `t3.medium`
 2. Security Group : SSH `22` (My IP) + TCP `8009` (API)
-3. `git clone` + `docker compose up -d --build mysql backend`
-4. Swagger : `http://IP_PUBLIQUE:8009/swagger-ui/index.html`
+3. `cp .env.example .env` → définir un mot de passe fort
+4. `docker compose -f docker-compose.prod.yml --env-file .env up -d --build`
+5. Swagger : `http://IP_PUBLIQUE:8009/swagger-ui/index.html`
 
 ---
 
@@ -177,7 +201,7 @@ docker run -d --name mysql-ecommerce \
   -e MYSQL_DATABASE=ecommercedb \
   -p 3307:3306 mysql:8
 
-./mvnw spring-boot:run
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 ---
@@ -197,13 +221,20 @@ Profil `test` : `src/main/resources/application-test.properties`
 ```text
 .
 ├── .github/workflows/ci-cd.yml
+├── .env.example
 ├── Dockerfile
-├── docker-compose.yml
+├── docker-compose.yml          # dev local
+├── docker-compose.prod.yml     # production EC2
 ├── docs/
 │   ├── DEPLOYMENT.md
 │   └── POST_MORTEM_TEMPLATE.md
 ├── monitoring/
 ├── src/main/resources/
+│   ├── application-dev.properties
+│   ├── application-docker.properties
+│   ├── application-prod.properties
+│   ├── application-test.properties
+│   └── db/migration/
 └── pom.xml
 ```
 

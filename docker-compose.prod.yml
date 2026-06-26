@@ -1,0 +1,40 @@
+# Production — utiliser avec : docker compose -f docker-compose.prod.yml --env-file .env up -d
+# Profil Spring : prod | Secrets via .env | MySQL non exposé sur Internet
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql-ecommerce-prod
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-ecommercedb}
+    volumes:
+      - mysql_prod_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${BACKEND_IMAGE:-ecommerce-backend-prod}
+    container_name: ecommerce-backend-prod
+    restart: unless-stopped
+    ports:
+      - "8009:8009"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql_prod_data:

@@ -1,3 +1,4 @@
+# Développement local — profil docker (voir docker-compose.prod.yml pour la production)
 services:
   mysql:
     image: mysql:8
