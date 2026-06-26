@@ -248,38 +248,6 @@ Documentation complète : Swagger UI.
 
 ---
 
-## Contribution au projet original
-
-Ce fork ajoute une couche DevOps au projet Masai School.
-
-Guide pour proposer une PR au repo original : **[docs/UPSTREAM_PR.md](docs/UPSTREAM_PR.md)**
-
-Repo upstream : [abinashpanigrahi/ECommerce-SpringBoot-Backend-Project](https://github.com/abinashpanigrahi/ECommerce-SpringBoot-Backend-Project)
-
----
-
-## Roadmap
-
-- [x] Docker + Docker Compose
-- [x] GitHub Actions CI/CD
-- [x] Scan Trivy + GHCR
-- [x] Actuator + Prometheus + Grafana
-- [x] Deploy manuel EC2
-- [x] Documentation
-- [ ] Deploy automatique GHA → EC2
-- [ ] Terraform (IaC)
-- [ ] Post-mortem incident (template dans `docs/`)
-- [ ] PR mergée sur le repo original
-
----
-
-## Auteur
-
-**Mohammed ELouaqqad**
-
-- GitHub : [@MohammedELouaqqad](https://github.com/MohammedELouaqqad)
-- Repo : [ecommerce-backend-devops](https://github.com/MohammedELouaqqad/ecommerce-backend-devops)
-
 ## Remerciements
 
 Projet API original : [abinashpanigrahi/ECommerce-SpringBoot-Backend-Project](https://github.com/abinashpanigrahi/ECommerce-SpringBoot-Backend-Project) — Masai School.
