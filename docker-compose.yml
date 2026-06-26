@@ -32,6 +32,7 @@ services:
         condition: service_healthy
 
   prometheus:
+    profiles: ["monitoring"]
     image: prom/prometheus:v2.55.1
     container_name: ecommerce-prometheus
     restart: unless-stopped
@@ -45,6 +46,7 @@ services:
       - backend
 
   grafana:
+    profiles: ["monitoring"]
     image: grafana/grafana:11.3.0
     container_name: ecommerce-grafana
     restart: unless-stopped
